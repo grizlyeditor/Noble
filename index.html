@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual CC - Premium Effects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #8A2BE2;
+            --secondary: #FF1493;
+            --accent: #00FFFF;
+            --dark: #1A1A2E;
+            --light: #F8F9FA;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .menu {
+            display: flex;
+            gap: 30px;
+        }
+
+        .menu-item {
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+        }
+
+        .menu-item:not(.active):hover {
+            background: rgba(138, 43, 226, 0.2);
+        }
+
+        .contact-admin {
+            background: linear-gradient(45deg, #00DBDE, #FC00FF);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 219, 222, 0.3);
+        }
+
+        .contact-admin:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 219, 222, 0.5);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.3);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .product-creator {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00FF7F;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .price-tag {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+
+        /* Buy Button */
+        .buy-btn {
+            background: linear-gradient(45deg, #00DBDE, #FC00FF);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 219, 222, 0.3);
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 219, 222, 0.5);
+        }
+
+        .buy-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .buy-btn:hover::after {
+            left: 100%;
+        }
+
+        /* Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .product-details {
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .overlay.active .product-details {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .detail-name {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .detail-creator {
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .detail-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00FF7F;
+            margin-bottom: 20px;
+        }
+
+        .detail-description {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .overlay.active .contact-form {
+            transform: scale(1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(138, 43, 226, 0.5);
+        }
+
+        /* Animation for product cards */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-card {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(5) { animation-delay: 0.5s; }
+        .product-card:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(138, 43, 226, 0.3);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+            border-top: 1px solid rgba(138, 43, 226, 0.3);
+            background: rgba(26, 26, 46, 0.5);
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .menu {
+                gap: 15px;
+            }
+
+            .menu-item {
+                font-size: 1rem;
+                padding: 6px 12px;
+            }
+
+            .container {
+                margin-top: 150px;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <i class="fas fa-magic"></i>
+            <span>Visual CC</span>
+        </div>
+        <div class="menu">
+            <div class="menu-item active" data-category="all">All Products</div>
+            <div class="menu-item" data-category="CC">CC Collection</div>
+            <div class="menu-item" data-category="SHAKE">Shake Effects</div>
+        </div>
+        <div class="contact-admin" id="contactAdmin">
+            <i class="fas fa-headset"></i> Contact Admin
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="section-title">
+            <h2>Premium Visual Effects</h2>
+            <p>High-quality CC and Shake effects for your creative projects</p>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Products will be loaded here dynamically -->
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Overlay -->
+    <div class="overlay" id="productOverlay">
+        <div class="product-details">
+            <div class="close-btn" id="closeProduct">
+                <i class="fas fa-times"></i>
+            </div>
+            <img src="" alt="Product Image" class="detail-image" id="detailImage">
+            <h2 class="detail-name" id="detailName"></h2>
+            <div class="detail-creator" id="detailCreator"></div>
+            <div class="detail-price" id="detailPrice"></div>
+            <p class="detail-description" id="detailDescription"></p>
+            <button class="buy-btn" id="buyButton">
+                <i class="fas fa-shopping-cart"></i> Buy Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Contact Admin Overlay -->
+    <div class="overlay" id="contactOverlay">
+        <div class="contact-form">
+            <div class="close-btn" id="closeContact">
+                <i class="fas fa-times"></i>
+            </div>
+            <h2 style="text-align: center; margin-bottom: 20px; background: linear-gradient(45deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Contact Admin</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="contactName">Your Name</label>
+                    <input type="text" id="contactName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactEmail">Your Email</label>
+                    <input type="email" id="contactEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactSubject">Subject</label>
+                    <input type="text" id="contactSubject" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p class="footer-text">© 2023 Visual CC. All rights reserved. Premium effects by Subhu EFX.</p>
+    </footer>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOg09RLtzrpwingJzcFxWxyQa-jPHUN_o",
+            authDomain: "visual-cc58b.firebaseapp.com",
+            databaseURL: "https://visual-cc58b-default-rtdb.firebaseio.com",
+            projectId: "visual-cc58b",
+            storageBucket: "visual-cc58b.firebasestorage.app",
+            messagingSenderId: "236633699332",
+            appId: "1:236633699332:web:7b49df741872430321f151",
+            measurementId: "G-D9KHTNFXPE"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <!-- User Panel JavaScript -->
+    <script>
+        // DOM Elements
+        const productsGrid = document.getElementById('productsGrid');
+        const productOverlay = document.getElementById('productOverlay');
+        const contactOverlay = document.getElementById('contactOverlay');
+        const closeProduct = document.getElementById('closeProduct');
+        const closeContact = document.getElementById('closeContact');
+        const contactAdmin = document.getElementById('contactAdmin');
+        const menuItems = document.querySelectorAll('.menu-item');
+        const contactForm = document.getElementById('contactForm');
+        const buyButton = document.getElementById('buyButton');
+
+        // Product detail elements
+        const detailImage = document.getElementById('detailImage');
+        const detailName = document.getElementById('detailName');
+        const detailCreator = document.getElementById('detailCreator');
+        const detailPrice = document.getElementById('detailPrice');
+        const detailDescription = document.getElementById('detailDescription');
+
+        // Current category filter
+        let currentCategory = 'all';
+        let products = [];
+
+        // Load products from Firestore
+        function loadProducts(category = 'all') {
+            productsGrid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            let query = db.collection('products').where('status', '==', 'active');
+            
+            if (category !== 'all') {
+                query = query.where('category', '==', category);
+            }
+            
+            query.orderBy('createdAt', 'desc').get()
+                .then((querySnapshot) => {
+                    productsGrid.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        productsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No products found in this category.</div>';
+                        return;
+                    }
+                    
+                    products = [];
+                    querySnapshot.forEach((doc) => {
+                        const product = {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+                        products.push(product);
+                        
+                        const productCard = document.createElement('div');
+                        productCard.className = 'product-card';
+                        productCard.innerHTML = `
+                            <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
+                            <div class="product-info">
+                                <h3 class="product-name">${product.name}</h3>
+                                <div class="product-creator">
+                                    <i class="fas fa-user"></i> By ${product.createdBy || 'Subhu EFX'}
+                                </div>
+                                <div class="product-price">
+                                    $${product.price.toFixed(2)}
+                                    <span class="price-tag">${product.category}</span>
+                                </div>
+                                <button class="buy-btn" data-id="${product.id}">
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
+                            </div>
+                        `;
+                        
+                        productsGrid.appendChild(productCard);
+                    });
+                    
+                    // Add event listeners to buy buttons
+                    document.querySelectorAll('.buy-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const productId = this.getAttribute('data-id');
+                            showProductDetails(productId);
+                        });
+                    });
+                })
+                .catch((error) => {
+                    productsGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ff6b6b;">Error loading products: ${error.message}</div>`;
+                });
+        }
+
+        // Show product details in overlay
+        function showProductDetails(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            detailImage.src = product.imageUrl;
+            detailName.textContent = product.name;
+            detailCreator.innerHTML = `<i class="fas fa-user"></i> Created by ${product.createdBy || 'Subhu EFX'}`;
+            detailPrice.textContent = `$${product.price.toFixed(2)}`;
+            detailDescription.textContent = product.details || 'Premium quality effect for your creative projects.';
+            
+            // Set buy button to navigate to purchase page
+            buyButton.onclick = () => {
+                window.location.href = `buy.html?product=${productId}`;
+            };
+            
+            productOverlay.classList.add('active');
+        }
+
+        // Category filtering
+        menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Update active menu item
+                menuItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Load products for selected category
+                currentCategory = this.getAttribute('data-category');
+                loadProducts(currentCategory);
+            });
+        });
+
+        // Contact admin functionality
+        contactAdmin.addEventListener('click', () => {
+            contactOverlay.classList.add('active');
+        });
+
+        // Close overlays
+        closeProduct.addEventListener('click', () => {
+            productOverlay.classList.remove('active');
+        });
+
+        closeContact.addEventListener('click', () => {
+            contactOverlay.classList.remove('active');
+        });
+
+        // Contact form submission
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('contactName').value;
+            const email = document.getElementById('contactEmail').value;
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value;
+            
+            // Here you would typically send this data to your backend
+            // For now, we'll just show an alert and close the form
+            alert(`Thank you, ${name}! Your message has been sent to the admin.`);
+            contactForm.reset();
+            contactOverlay.classList.remove('active');
+        });
+
+        // Close overlay when clicking outside content
+        window.addEventListener('click', (e) => {
+            if (e.target === productOverlay) {
+                productOverlay.classList.remove('active');
+            }
+            if (e.target === contactOverlay) {
+                contactOverlay.classList.remove('active');
+            }
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
